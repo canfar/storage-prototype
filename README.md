@@ -54,5 +54,5 @@ After the VM is started, execute
 `eval $(docker-machine env <$VM_NAME>)`
 To "activate" the VM, and then subsequent `docker` commands will be executed on that VM.
 
-**The East Cloud OpenStack instance has issues booting VMs and more wait time is usually required.**
+**__The East Cloud OpenStack instance has issues booting VMs and more wait time is usually required.__**
 
