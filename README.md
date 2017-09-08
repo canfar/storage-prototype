@@ -6,7 +6,7 @@ CANFAR (C3TP) Storage Prototype with Alluxio and Flink
 
 ## Alluxio Deployment
 
-All deployment is handled by Docker.  Orchestration is handled by Docker Compose via the provided
+All deployment is handled by Docker.  Orchestration is handled by [Docker Compose](https://docs.docker.com/compose/overview/) via the provided
 docker-compose.yml files on each site.
 
 ### Layout
@@ -40,3 +40,21 @@ serve from this site.
   - Provides environment variables to use for the Docker Compose commands for each site running Flink.  Run with `$>. .flink.env`.
 - **.openstack.east.env \| .openstack.west.env**
   - Provides environment variables to use with Docker Machine to run VMs on East Cloud or West Cloud OpenStack.  Run with `$>. .openstack.east.env` \| `$>. .openstack.west.env`.
+- **mount-local.sh \| mount-s3-minio.sh \| mount-s3-uvic.sh**
+  - Shell scripts to mount a local directory or an S3 bucket.  This uses the REST API of the Alluxio Master Proxy (Alluxio Proxy 1 above).
+
+### Deploy
+VMs are started using [Docker Machine](https://docs.docker.com/machine/overview/).
+
+#### Start a VM on West Cloud
+Modify for East Cloud as appropriate.
+
+`. .openstack.west.env && docker-machine create --driver openstack <$VM_NAME>` where $VM_NAME is the name of the VM.  This was used to create the `alluxio` and `flink-west` VMs.
+After the VM is started, execute
+`eval $(docker-machine env <$VM_NAME>)`
+To "activate" the VM, and then subsequent `docker` commands will be executed on that VM.
+
+<aside class="warning">
+The East Cloud OpenStack instance has issues booting VMs and more wait time is usually required.
+</aside>
+
