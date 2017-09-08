@@ -1,0 +1,12 @@
+version: '3'
+services:
+  taskmanager:
+    image: ${FLINK_DOCKER_IMAGE_NAME}
+    hostname: ${FLINK_TASK_MANAGER_HOSTNAME}
+    command: taskmanager
+    ports:
+      - '6121-6125:6121-6125'
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=${FLINK_JOB_MANAGER_HOSTNAME}
+      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+      - TASK_MANAGER_HOSTNAME=${FLINK_TASK_MANAGER_HOSTNAME}

@@ -1,0 +1,50 @@
+version: '3'
+services:
+  alluxio-proxy:
+    image: ${ALLUXIO_DOCKER_IMAGE_NAME}
+    hostname: ${ALLUXIO_MASTER_HOSTNAME}
+    ports:
+      - '39999:39999'
+    command: proxy
+    environment:
+      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+    networks:
+      - alluxio
+    depends_on:
+      - alluxio-master
+  alluxio-master:
+    image: ${ALLUXIO_DOCKER_IMAGE_NAME}
+    volumes:
+      - '/var/local/alluxio/conf:/opt/alluxio/conf'
+      - '/var/local/alluxio/underStorage:/underStorage'
+    hostname: ${ALLUXIO_MASTER_HOSTNAME}
+    ports:
+      - '19998-19999:19998-19999'
+    command: master
+    networks:
+      - alluxio
+    environment:
+      - ALLUXIO_USER_FILE_WRITETYPE_DEFAULT=${ALLUXIO_USER_FILE_WRITETYPE_DEFAULT}
+      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+      - ALLUXIO_UNDERFS_ADDRESS=/underStorage
+      - ALLUXIO_LOGS_DIR=${ALLUXIO_LOGS_DIR}
+      - ALLUXIO_MASTER_FORMAT_FLAG=${ALLUXIO_MASTER_FORMAT_FLAG}
+  alluxio-worker:
+    image: ${ALLUXIO_DOCKER_IMAGE_NAME}
+    shm_size: 5G
+#    hostname: ${ALLUXIO_MASTER_HOSTNAME}
+    ports:
+      - '29998-30000:29998-30000'
+    command: worker
+    networks:
+      - alluxio
+    depends_on:
+      - alluxio-master
+    environment:
+      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+      - ALLUXIO_WORKER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+      - ALLUXIO_WORKER_MEMORY_SIZE=5GB
+      - ALLUXIO_LOGS_DIR=${ALLUXIO_LOGS_DIR}
+
+networks:
+  alluxio:

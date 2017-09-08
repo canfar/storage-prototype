@@ -1,0 +1,27 @@
+version: '3'
+services:
+  jobmanager:
+    image: ${FLINK_DOCKER_IMAGE_NAME}
+    hostname: ${FLINK_JOB_MANAGER_HOSTNAME}
+    ports:
+      - '8081:8081'
+      - '6123-6125:6123-6125'
+    command: jobmanager
+    networks:
+      - flink
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=${FLINK_JOB_MANAGER_HOSTNAME}
+      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+  taskmanager:
+    image: ${FLINK_DOCKER_IMAGE_NAME}
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    networks:
+      - flink
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=${FLINK_JOB_MANAGER_HOSTNAME}
+      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+
+networks:
+  flink:

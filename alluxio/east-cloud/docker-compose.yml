@@ -1,0 +1,28 @@
+version: '3'
+services:
+  alluxio-proxy:
+    image: ${ALLUXIO_DOCKER_IMAGE_NAME}
+    ports:
+      - '39999:39999'
+    command: proxy
+    environment:
+      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+    networks:
+      - alluxio
+  alluxio-worker:
+    image: ${ALLUXIO_DOCKER_IMAGE_NAME}
+    shm_size: 5G
+#    hostname: ${ALLUXIO_MASTER_HOSTNAME}
+    ports:
+      - '29998-30000:29998-30000'
+    command: worker
+    networks:
+      - alluxio
+    environment:
+      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+      - ALLUXIO_WORKER_HOSTNAME=${ALLUXIO_WORKER_HOSTNAME}
+      - ALLUXIO_WORKER_MEMORY_SIZE=5GB
+      - ALLUXIO_LOGS_DIR=${ALLUXIO_LOGS_DIR}
+
+networks:
+  alluxio:
