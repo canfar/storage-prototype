@@ -6,6 +6,9 @@ CANFAR (C3TP) Storage Prototype with Alluxio and Flink
 
 ## Alluxio Deployment
 
+All deployment is handled by Docker.  Orchestration is handled by Docker Compose via the provided
+docker-compose.yml files on each site.
+
 ### Layout
 
 #### Master Site
@@ -23,7 +26,17 @@ CANFAR (C3TP) Storage Prototype with Alluxio and Flink
   - Task Manager for the Job Manager to thread out jobs to.
 
 #### Secondary Site
+Both the Worker 2 and Proxy 2 need to be on the same host to properly
+serve from this site.
 - Alluxio Worker 2 - East Cloud (alluxio-proxy VM - 206.167.180.97)
   - Secondary worker strategically located to serve from a secondary site.
 - Alluxio Proxy 2 - East Cloud (alluxio-proxy VM - 206.167.180.97)
   - Secondary proxy strategically located to serve from a secondary site.  This Proxy will request from the Master, then perform I/O operations from the local worker.
+
+### Scripts
+- **.alluxio.env**
+  - Provides environment variables to use for the Docker Compose commands for each site running Alluxio.  Run with `$>. .alluxio.env`.
+- **.flink.env**
+  - Provides environment variables to use for the Docker Compose commands for each site running Flink.  Run with `$>. .flink.env`.
+- **.openstack.east.env \| .openstack.west.env**
+  - Provides environment variables to use with Docker Machine to run VMs on East Cloud or West Cloud OpenStack.  Run with `$>. .openstack.east.env` \| `$>. .openstack.west.env`.
