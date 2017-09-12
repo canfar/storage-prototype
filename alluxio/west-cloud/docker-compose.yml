@@ -16,6 +16,8 @@ services:
     ports:
       - '29998-30000:29998-30000'
     command: worker
+    volumes:
+      - '/var/local/alluxio/data:/alluxioworker'
     networks:
       - alluxio
     environment:
@@ -29,9 +31,8 @@ services:
       - ALLUXIO_UNDERFS_S3_PROXY_HTTPS_ONLY=false
       - ALLUXIO_UNDERFS_S3_ENDPOINT_HTTP_PORT=9000
       - ALLUXIO_WORKER_MEMORY_SIZE=5GB
-      - ALLUXIO_LOGS_DIR=${ALLUXIO_LOGS_DIR}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
 
 networks:
   alluxio:
