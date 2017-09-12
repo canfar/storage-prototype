@@ -4,6 +4,7 @@ services:
     image: ${ALLUXIO_DOCKER_IMAGE_NAME}
     ports:
       - '39999:39999'
+    hostname: ${ALLUXIO_WORKER_HOSTNAME}
     command: proxy
     environment:
       - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
@@ -12,7 +13,6 @@ services:
   alluxio-worker:
     image: ${ALLUXIO_DOCKER_IMAGE_NAME}
     shm_size: 5G
-#    hostname: ${ALLUXIO_MASTER_HOSTNAME}
     ports:
       - '29998-30000:29998-30000'
     command: worker

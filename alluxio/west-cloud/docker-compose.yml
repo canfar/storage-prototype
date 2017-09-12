@@ -2,49 +2,36 @@ version: '3'
 services:
   alluxio-proxy:
     image: ${ALLUXIO_DOCKER_IMAGE_NAME}
-    hostname: ${ALLUXIO_MASTER_HOSTNAME}
     ports:
       - '39999:39999'
+    hostname: ${ALLUXIO_WORKER_HOSTNAME}
     command: proxy
     environment:
       - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
     networks:
       - alluxio
-    depends_on:
-      - alluxio-master
-  alluxio-master:
-    image: ${ALLUXIO_DOCKER_IMAGE_NAME}
-    volumes:
-      - '/var/local/alluxio/conf:/opt/alluxio/conf'
-      - '/var/local/alluxio/underStorage:/underStorage'
-    hostname: ${ALLUXIO_MASTER_HOSTNAME}
-    ports:
-      - '19998-19999:19998-19999'
-    command: master
-    networks:
-      - alluxio
-    environment:
-      - ALLUXIO_USER_FILE_WRITETYPE_DEFAULT=${ALLUXIO_USER_FILE_WRITETYPE_DEFAULT}
-      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
-      - ALLUXIO_UNDERFS_ADDRESS=/underStorage
-      - ALLUXIO_LOGS_DIR=${ALLUXIO_LOGS_DIR}
-      - ALLUXIO_MASTER_FORMAT_FLAG=${ALLUXIO_MASTER_FORMAT_FLAG}
   alluxio-worker:
     image: ${ALLUXIO_DOCKER_IMAGE_NAME}
     shm_size: 5G
-#    hostname: ${ALLUXIO_MASTER_HOSTNAME}
     ports:
       - '29998-30000:29998-30000'
     command: worker
     networks:
       - alluxio
-    depends_on:
-      - alluxio-master
     environment:
       - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
-      - ALLUXIO_WORKER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+      - ALLUXIO_WORKER_HOSTNAME=${ALLUXIO_WORKER_HOSTNAME}
+      - ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS}
+      - ALLUXIO_UNDERFS_S3_ENDPOINT=${ALLUXIO_S3_ENDPOINT}
+      - ALLUXIO_UNDERFS_S3_DISABLE_DNS_BUCKETS=true
+      - ALLUXIO_UNDERFS_S3A_INHERIT_ACL=false
+      - ALLUXIO_UNDERFS_S3A_SIGNER_ALGORITHM=S3SignerType
+      - ALLUXIO_UNDERFS_S3_PROXY_HTTPS_ONLY=false
+      - ALLUXIO_UNDERFS_S3_ENDPOINT_HTTP_PORT=9000
       - ALLUXIO_WORKER_MEMORY_SIZE=5GB
       - ALLUXIO_LOGS_DIR=${ALLUXIO_LOGS_DIR}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
 
 networks:
   alluxio:
