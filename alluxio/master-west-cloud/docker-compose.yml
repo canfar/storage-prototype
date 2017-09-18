@@ -2,16 +2,18 @@ version: '3'
 services:
   alluxio-master:
     image: ${ALLUXIO_DOCKER_IMAGE_NAME}
-    volumes:
-      - '/var/local/alluxio/conf:/opt/alluxio/conf'
-      - '/var/local/alluxio/underStorage:${ALLUXIO_UNDERFS_ADDRESS}'
+#    volumes:
+#      - '/var/local/alluxio/conf:/opt/alluxio/conf'
+#      - '/var/local/alluxio/underStorage:${ALLUXIO_UNDERFS_ADDRESS}'
     hostname: ${ALLUXIO_MASTER_HOSTNAME}
     ports:
+      - '6607:6607'
       - '19998-19999:19998-19999'
     command: master
     networks:
       - alluxio
     environment:
+      - ALLUXIO_MASTER_DEBUG=${ALLUXIO_MASTER_DEBUG}
       - ALLUXIO_USER_FILE_WRITETYPE_DEFAULT=${ALLUXIO_USER_FILE_WRITETYPE_DEFAULT}
       - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
       - ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS}

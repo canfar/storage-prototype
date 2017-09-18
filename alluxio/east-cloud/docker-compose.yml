@@ -7,22 +7,29 @@ services:
     hostname: ${ALLUXIO_WORKER_HOSTNAME}
     command: proxy
     environment:
+      - ALLUXIO_PROXY_DEBUG=${ALLUXIO_PROXY_DEBUG}
       - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
     networks:
       - alluxio
   alluxio-worker:
     image: ${ALLUXIO_DOCKER_IMAGE_NAME}
+    hostname: ${ALLUXIO_WORKER_HOSTNAME}
     shm_size: 5G
     ports:
+      - '6606:6606'
       - '29998-30000:29998-30000'
     command: worker
+#    volumes:
+#      - '/var/local/alluxio/data:/alluxioworker'
     networks:
       - alluxio
     environment:
       - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
       - ALLUXIO_WORKER_HOSTNAME=${ALLUXIO_WORKER_HOSTNAME}
+      - ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS}
       - ALLUXIO_WORKER_MEMORY_SIZE=5GB
-      - ALLUXIO_LOGS_DIR=${ALLUXIO_LOGS_DIR}
+      - ALLUXIO_WORKER_DEBUG=${ALLUXIO_WORKER_DEBUG}
+      - ALLUXIO_UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY=${ALLUXIO_UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY}
 
 networks:
   alluxio:

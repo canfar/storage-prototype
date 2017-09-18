@@ -34,12 +34,12 @@ generateJSON()
 {
 "shared":true,
 "properties": {
-  "alluxio.underfs.s3.endpoint":"$ALLUXIO_UNDERFS_S3_ENDPOINT",
+  "alluxio.underfs.s3.endpoint":"$ALLUXIO_S3_ENDPOINT",
   "aws.accessKeyId":"$AWS_ACCESS_KEY", 
   "aws.secretKey":"$AWS_SECRET_KEY",
   "alluxio.underfs.s3.disable.dns.buckets":true,
   "alluxio.underfs.s3a.inherit_acl":false,
-  "alluxio.underfs.s3a.signer.algorithm":"S3SignerType",
+  "alluxio.underfs.s3a.signer.algorithm":"S3SignerType",gi
   "alluxio.underfs.s3.proxy.https.only":false,
   "alluxio.underfs.s3.endpoint.http.port":9000
 }
@@ -51,5 +51,5 @@ echo "$(generateJSON)"
 curl -v \
 -H "Content-Type: application/json" \
 -d "$(generateJSON)" \
-"http://${ALLUXIO_MASTER_HOSTNAME}:39999/api/v1/paths/${MOUNT_POINT}/mount/?src=${ADDRESS}"
+"http://${ALLUXIO_WORKER_HOSTNAME}:39999/api/v1/paths/${MOUNT_POINT}/mount/?src=${ADDRESS}"
 
