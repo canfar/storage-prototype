@@ -69,20 +69,24 @@
 package org.opencadc.storage;
 
 
+import org.apache.flink.api.common.JobExecutionResult;
+import org.apache.flink.api.common.accumulators.Accumulator;
+import org.apache.flink.api.common.accumulators.SimpleAccumulator;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.fs.FileStatus;
-import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.OutputFormatSinkFunction;
 import org.apache.flink.util.Collector;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 
@@ -100,58 +104,60 @@ public class SearcherApp
         final DataStream<FileStatus> inputStream =
                 executionEnvironment.fromCollection(Arrays.asList(path.getFileSystem().listStatus(path)));
 
-        final SingleOutputStreamOperator<FileStatus> filteredOutput =
-                inputStream.flatMap(new FlatMapFunction<FileStatus, FileStatus>()
-                {
-                    @Override
-                    public void flatMap(FileStatus value, Collector<FileStatus> out) throws Exception
-                    {
-                        if (value.isDir())
-                        {
-                            final RecursiveFilePathLookup pathLookup = new RecursiveFilePathLookup(value.getPath());
-                            pathLookup.gatherPaths(out);
-                        }
-                        else
-                        {
-                            out.collect(value);
-                        }
-                    }
-                }).filter(new FilterFunction<FileStatus>()
-                {
-                    /**
-                     * Rules to determine which entries are KEPT, NOT filtered out.
-                     * @param value     The next value to check.
-                     * @return          True if it is to be kept, False otherwise.
-                     * @throws Exception    Any thing goes awry.
-                     */
-                    @Override
-                    public boolean filter(FileStatus value) throws Exception
-                    {
-                        return value.getPath().getPath().matches(".*" + userTerm + ".*");
-                    }
-                });
-
-        filteredOutput.writeUsingOutputFormat(new OutputFormat<FileStatus>()
+        inputStream.flatMap(new FlatMapFunction<FileStatus, FileStatus>()
         {
             @Override
-            public void configure(Configuration parameters) { }
-
-            @Override
-            public void open(int taskNumber, int numTasks) throws IOException { }
-
-            @Override
-            public void writeRecord(FileStatus record) throws IOException
+            public void flatMap(FileStatus value, Collector<FileStatus> out) throws Exception
             {
-                System.out.println("********************");
-                System.out.println(String.format("I think record: %s", record.getPath().getPath()));
-                System.out.println("********************");
+
+                if (value.isDir())
+                {
+                    final RecursiveFilePathLookup pathLookup = new RecursiveFilePathLookup(value.getPath());
+                    pathLookup.gatherPaths(out);
+                }
+                else
+                {
+                    out.collect(value);
+                }
+            }
+        }).filter(new FilterFunction<FileStatus>()
+        {
+            /**
+             * Rules to determine which entries are KEPT, NOT filtered out.
+             * @param value     The next value to check.
+             * @return True if it is to be kept, False otherwise.
+             * @throws Exception    Any thing goes awry.
+             */
+            @Override
+            public boolean filter(FileStatus value) throws Exception
+            {
+                return value.getPath().getPath().matches(".*" + userTerm + ".*");
+            }
+        }).flatMap(new RichFlatMapFunction<FileStatus, String>()
+        {
+            private final Accumulator<String, ArrayList<String>> accumulator = new SearchResultsAccumulator();
+
+            @Override
+            public void open(Configuration parameters) throws Exception
+            {
+                getRuntimeContext().addAccumulator("output", accumulator);
             }
 
             @Override
-            public void close() throws IOException { }
+            public void flatMap(FileStatus value, Collector<String> out) throws Exception
+            {
+                accumulator.add(value.getPath().getPath());
+            }
         });
 
-        executionEnvironment.setParallelism(parallelism).execute(String.format("Search Metadata (%d)", parallelism));
+        final JobExecutionResult result =
+                executionEnvironment.setParallelism(parallelism).execute(String.format("Search Metadata (%d)",
+                                                                                       parallelism));
+        final ArrayList<String> accumulatedResults = result.getAccumulatorResult("output");
+        System.out.println("********************");
+        System.out.println("Results: "
+                           + Arrays.toString(accumulatedResults.toArray(new String[accumulatedResults.size()])));
+        System.out.println("********************");
     }
 
     static class RecursiveFilePathLookup
