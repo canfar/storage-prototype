@@ -14,9 +14,8 @@ repositories {
 version = '1.0.1'
 
 jar {
-//    archiveName = 'searcher-' + project.version + '.jar'
     manifest {
-        attributes 'Main-Class': 'org.opencadc.storage.SearcherApp',
+        attributes 'Main-Class': 'org.opencadc.storage.MigrationApp',
                    'Implementation-Title': 'App to search Alluxio using Flink',
                    'Implementation-Version': '1.0'
     }
@@ -27,6 +26,7 @@ dependencies {
     compile 'org.apache.flink:flink-core:1.3.+'
     compile 'org.apache.flink:flink-java:1.3.+'
     compile 'org.apache.flink:flink-streaming-java_2.11:1.3.+'
+    compile files('libs/alluxio-keyvalue-client-1.6.0-SNAPSHOT-jar-with-dependencies.jar')
     compile files('libs/alluxio-core-client-runtime-1.6.0-SNAPSHOT-jar-with-dependencies.jar')
 
     testCompile 'junit:junit:4.+'

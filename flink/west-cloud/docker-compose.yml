@@ -7,11 +7,18 @@ services:
       - '8081:8081'
       - '6123-6125:6123-6125'
     command: jobmanager
+    volumes:
+      - '/var/local/flink/logs:${FLINK_HOME}/log'
     networks:
       - flink
     environment:
       - JOB_MANAGER_RPC_ADDRESS=${FLINK_JOB_MANAGER_HOSTNAME}
-      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+      - FLINK_CONFIG_ENV_LOG_FILE=${FLINK_HOME}/log/flink-jobmanager.out
+      - FLINK_CONFIG_TASKMANAGER_LOG_PATH=${FLINK_HOME}/log/taskmanager.out
+      - HADOOP_CONFIG_FS_S3_IMPL=${HADOOP_CONFIG_FS_S3_IMPL}
+      - HADOOP_CONFIG_FS_S3_BUFFER_DIR=${HADOOP_CONFIG_FS_S3_BUFFER_DIR}
+      - HADOOP_CONFIG_FS_S3A_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - HADOOP_CONFIG_FS_S3A_SECRET_KEY=${AWS_SECRET_KEY}
   taskmanager:
     image: ${FLINK_DOCKER_IMAGE_NAME}
     depends_on:
@@ -21,7 +28,12 @@ services:
       - flink
     environment:
       - JOB_MANAGER_RPC_ADDRESS=${FLINK_JOB_MANAGER_HOSTNAME}
-      - ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_HOSTNAME}
+      - FLINK_CONFIG_ENV_LOG_FILE=${FLINK_HOME}/log/flink-taskmanager.out
+      - FLINK_CONFIG_TASKMANAGER_LOG_PATH=${FLINK_HOME}/log/taskmanager.out
+      - HADOOP_CONFIG_FS_S3_IMPL=${HADOOP_CONFIG_FS_S3_IMPL}
+      - HADOOP_CONFIG_FS_S3_BUFFER_DIR=${HADOOP_CONFIG_FS_S3_BUFFER_DIR}
+      - HADOOP_CONFIG_FS_S3A_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - HADOOP_CONFIG_FS_S3A_SECRET_KEY=${AWS_SECRET_KEY}      
 
 networks:
   flink:
