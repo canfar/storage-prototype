@@ -68,93 +68,53 @@
 
 package org.opencadc.storage;
 
-
-import org.apache.flink.api.common.JobExecutionResult;
-import org.apache.flink.api.common.accumulators.Accumulator;
-import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.fs.FileStatus;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
-import org.opencadc.FlinkConfigurationTool;
 
-import java.net.URI;
-import java.util.*;
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 
-public class SearcherApp
+final class SearchUtils
 {
-    public static void main(final String[] args) throws Exception
+    static void readRecursivePaths(final FileSystem fs, final String basePath,
+                                   final Collector<String> result)
+            throws IOException, URISyntaxException
     {
-        final ParameterTool params = ParameterTool.fromArgs(args);
-        final Path bucketPath = new Path(params.get("root"));
-        final FileSystem fileSystem = bucketPath.getFileSystem();
-        final URI fileSystemURI = fileSystem.getUri();
-        final String userTerm = params.get("term");
-        final int parallelism = params.getInt("parallelism", 1);
+        final FileStatus[] listStatus = fs.listStatus(new Path(fs.getUri() + basePath));
 
-        final StreamExecutionEnvironment executionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment();
-        final Configuration flinkConfiguration = FlinkConfigurationTool.fromSystem();
-
-        flinkConfiguration.setString("fs.s3a.access.key", System.getenv("HADOOP_CONFIG_FS_S3A_ACCESS_KEY"));
-        System.setProperty("fs.s3a.access.key", System.getenv("HADOOP_CONFIG_FS_S3A_ACCESS_KEY"));
-        flinkConfiguration.setString("fs.s3.awsAccessKeyId", System.getenv("HADOOP_CONFIG_FS_S3A_ACCESS_KEY"));
-        flinkConfiguration.setString("fs.s3a.secret.key", System.getenv("HADOOP_CONFIG_FS_S3A_SECRET_KEY"));
-        System.setProperty("fs.s3a.secret.key", System.getenv("HADOOP_CONFIG_FS_S3A_SECRET_KEY"));
-        flinkConfiguration.setString("fs.s3.awsSecretAccessKey", System.getenv("HADOOP_CONFIG_FS_S3A_SECRET_KEY"));
-
-        executionEnvironment.getConfig().setGlobalJobParameters(flinkConfiguration);
-
-        final DataStream<FileStatus> inputStream =
-                executionEnvironment.fromCollection(Arrays.asList(fileSystem.listStatus(bucketPath)));
-
-        inputStream.flatMap((FlatMapFunction<FileStatus, String>) (value, out) -> {
-            final Path p = new Path(fileSystemURI + bucketPath.getPath());
-            final FileSystem pathFileSystem = p.getFileSystem();
-            SearchUtils.readRecursivePaths(pathFileSystem, p.getPath(), out);
-        }).returns(String.class).filter(new FilterFunction<String>()
+        for (final FileStatus fstat : listStatus)
         {
-            /**
-             * Rules to determine which entries are KEPT, NOT filtered out.
-             * @param value     The next value to check.
-             * @return True if it is to be kept, False otherwise.
-             * @throws Exception    Any thing goes awry.
-             */
-            @Override
-            public boolean filter(String value) throws Exception
-            {
-                return value.matches(".*" + userTerm + ".*");
-            }
-        }).flatMap(new RichFlatMapFunction<String, String>()
+            SearchUtils.readSubDirectory(fstat, fs, result);
+        }
+    }
+
+    private static void readSubDirectory(final FileStatus fileStatus, final FileSystem fs,
+                                         final Collector<String> paths)
+            throws IOException, URISyntaxException
+    {
+        if (!fileStatus.isDir())
         {
-            final Accumulator<String, ArrayList<String>> accumulator = new SearchResultsAccumulator();
+            paths.collect(fileStatus.getPath().getPath());
+        }
+        else
+        {
+            final String subPath = fileStatus.getPath().toString();
+            final FileStatus[] listStatus = fs.listStatus(new Path(subPath));
 
-            @Override
-            public void open(Configuration parameters) throws Exception
+            if (listStatus.length == 0)
             {
-                getRuntimeContext().addAccumulator("output", accumulator);
+                paths.collect(fileStatus.getPath().getPath());
             }
-
-            @Override
-            public void flatMap(String value, Collector<String> out) throws Exception
+            else
             {
-                accumulator.add(value);
+                for (final FileStatus fst : listStatus)
+                {
+                    SearchUtils.readSubDirectory(fst, fs, paths);
+                }
             }
-        });
-
-        final JobExecutionResult result =
-                executionEnvironment.setParallelism(parallelism).execute(String.format("Search Metadata (%d)",
-                                                                                       parallelism));
-        final ArrayList<String> accumulatedResults = result.getAccumulatorResult("output");
-        System.out.println("********************");
-        System.out.println("Results: "
-                           + Arrays.toString(accumulatedResults.toArray(new String[accumulatedResults.size()])));
-        System.out.println("********************");
+        }
     }
 }

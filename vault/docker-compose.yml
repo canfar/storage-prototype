@@ -1,0 +1,17 @@
+version: '3'
+services:
+  vault:
+    image: vault
+    ports:
+      - '8200:8200'
+    volumes:
+      - /var/local/vault/file:/vault/file:rw
+      - /var/local/vault/config:/vault/config:rw
+    cap_add:
+      - IPC_LOCK
+    entrypoint: vault server -log-level=debug -config=/vault/config/
+    networks:
+      - vault
+
+networks:
+  vault:
