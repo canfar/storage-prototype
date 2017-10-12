@@ -83,36 +83,37 @@ final class SearchUtils
                                    final Collector<String> result)
             throws IOException, URISyntaxException
     {
-        final FileStatus[] listStatus = fs.listStatus(new Path(fs.getUri() + basePath));
+        final FileStatus[] listStatus = fs.listStatus(new Path(basePath));
 
         for (final FileStatus fstat : listStatus)
         {
-            SearchUtils.readSubDirectory(fstat, fs, result);
+            SearchUtils.readSubDirectory(fstat, result);
         }
     }
 
-    private static void readSubDirectory(final FileStatus fileStatus, final FileSystem fs,
-                                         final Collector<String> paths)
+    private static void readSubDirectory(final FileStatus fileStatus, final Collector<String> paths)
             throws IOException, URISyntaxException
     {
+        final String subPath = fileStatus.getPath().getPath();
+
         if (!fileStatus.isDir())
         {
-            paths.collect(fileStatus.getPath().getPath());
+            paths.collect(subPath);
         }
         else
         {
-            final String subPath = fileStatus.getPath().toString();
-            final FileStatus[] listStatus = fs.listStatus(new Path(subPath));
+            final FileSystem thisFS = fileStatus.getPath().getFileSystem();
+            final FileStatus[] listStatus = thisFS.listStatus(new Path(thisFS.getUri() + fileStatus.getPath().getPath()));
 
             if (listStatus.length == 0)
             {
-                paths.collect(fileStatus.getPath().getPath());
+                paths.collect(subPath);
             }
             else
             {
                 for (final FileStatus fst : listStatus)
                 {
-                    SearchUtils.readSubDirectory(fst, fs, paths);
+                    SearchUtils.readSubDirectory(fst, paths);
                 }
             }
         }

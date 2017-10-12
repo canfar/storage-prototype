@@ -82,7 +82,6 @@ import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
-import org.opencadc.FlinkConfigurationTool;
 
 import java.net.URI;
 import java.util.*;
@@ -100,24 +99,13 @@ public class SearcherApp
         final int parallelism = params.getInt("parallelism", 1);
 
         final StreamExecutionEnvironment executionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment();
-        final Configuration flinkConfiguration = FlinkConfigurationTool.fromSystem();
-
-        flinkConfiguration.setString("fs.s3a.access.key", System.getenv("HADOOP_CONFIG_FS_S3A_ACCESS_KEY"));
-        System.setProperty("fs.s3a.access.key", System.getenv("HADOOP_CONFIG_FS_S3A_ACCESS_KEY"));
-        flinkConfiguration.setString("fs.s3.awsAccessKeyId", System.getenv("HADOOP_CONFIG_FS_S3A_ACCESS_KEY"));
-        flinkConfiguration.setString("fs.s3a.secret.key", System.getenv("HADOOP_CONFIG_FS_S3A_SECRET_KEY"));
-        System.setProperty("fs.s3a.secret.key", System.getenv("HADOOP_CONFIG_FS_S3A_SECRET_KEY"));
-        flinkConfiguration.setString("fs.s3.awsSecretAccessKey", System.getenv("HADOOP_CONFIG_FS_S3A_SECRET_KEY"));
-
-        executionEnvironment.getConfig().setGlobalJobParameters(flinkConfiguration);
-
         final DataStream<FileStatus> inputStream =
                 executionEnvironment.fromCollection(Arrays.asList(fileSystem.listStatus(bucketPath)));
 
         inputStream.flatMap((FlatMapFunction<FileStatus, String>) (value, out) -> {
             final Path p = new Path(fileSystemURI + bucketPath.getPath());
             final FileSystem pathFileSystem = p.getFileSystem();
-            SearchUtils.readRecursivePaths(pathFileSystem, p.getPath(), out);
+            SearchUtils.readRecursivePaths(pathFileSystem, p.toUri().toString(), out);
         }).returns(String.class).filter(new FilterFunction<String>()
         {
             /**
