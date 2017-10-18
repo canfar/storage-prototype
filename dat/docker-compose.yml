@@ -1,0 +1,14 @@
+version: '3'
+services:
+  dat:
+    image: at88mph/dat:alpine
+    command: share ${DATA_DIR}
+    ports:
+      - '8080:8080'
+      - '3282:3282'
+    volumes:
+      - '/var/local/dat/data:${DATA_DIR}:rw'
+      - '/var/local/dat/config:/root/.dat:rw'
+    network_mode: host
+    environment:
+      - DATA_DIR=/data

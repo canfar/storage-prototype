@@ -83,7 +83,7 @@ final class SearchUtils
                                    final Collector<String> result)
             throws IOException, URISyntaxException
     {
-        final FileStatus[] listStatus = fs.listStatus(new Path(basePath));
+        final FileStatus[] listStatus = fs.listStatus(new Path(fs.getUri() + basePath));
 
         for (final FileStatus fstat : listStatus)
         {

@@ -1,0 +1,20 @@
+version: '3'
+services:
+  dat:
+    hostname: mach378.cadc.dao.nrc.ca
+    image: at88mph/dat:alpine
+    command: create --title "${DAT_TITLE}" --description "${DAT_DESCRIPTION}" create /data
+    ports:
+      - '8080:8080'
+      - '3282:3282'
+    volumes:
+      - '/var/local/dat/config:/root/.dat:rw'
+      - '/var/local/dat/data:/data:rw'
+    networks:
+      - dat
+    environment:
+      - DAT_TITLE=${DAT_TITLE}
+      - DAT_DESCRIPTION=${DAT_DESCRIPTION}
+
+networks:
+  dat:
