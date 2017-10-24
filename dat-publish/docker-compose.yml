@@ -1,0 +1,17 @@
+version: '3'
+services:
+  dat:
+    hostname: stortest3.cadc.dao.nrc.ca
+    image: at88mph/dat-publish:alpine
+    ports:
+      - '3282:3282'
+    volumes:
+      - '/var/local/dat/data:/data:rw'
+      - '/var/local/dat/config:/root/.dat:rw'
+    network_mode: host
+    environment:
+      - DATA_DIR=${DATA_DIR}
+      - DAT_REGISTRY_SERVER=${DAT_REGISTRY_SERVER}
+      - DAT_LOGIN_EMAIL=${DAT_LOGIN_EMAIL}
+      - DAT_LOGIN_PASSWORD=${DAT_LOGIN_PASSWORD}
+      - DAT_LOGIN_USERNAME=${DAT_LOGIN_USERNAME}

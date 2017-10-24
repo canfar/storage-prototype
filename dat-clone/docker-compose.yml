@@ -2,7 +2,7 @@ version: '3'
 services:
   dat:
     image: at88mph/dat:alpine
-    command: share ${DATA_DIR}
+    command: 'clone --sparse dat://${DAT_KEY} ${DATA_DIR}; sync'
     ports:
       - '8080:8080'
       - '3282:3282'
@@ -11,4 +11,4 @@ services:
       - '/var/local/dat/config:/root/.dat:rw'
     network_mode: host
     environment:
-      - DATA_DIR=/data
+      - DATA_DIR=${DATA_DIR}
