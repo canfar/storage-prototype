@@ -12,12 +12,9 @@ if [[ ! -z "${DAT_LOGIN_EMAIL+x}" && ! -z "${DAT_LOGIN_PASSWORD+x}" ]]; then
 fi
 
 if [[ ! -z "${DEBUG+x}" ]]; then
-    DAT="time dat"
-    SYNC="${DAT} sync --watch false"
+    SYNC="time dat sync -d ${DATA_DIR}/${DAT_KEY} --watch false"
 else
-    DAT="dat"
-    SYNC="${DAT} sync"
+    SYNC="dat sync -d ${DATA_DIR}/${DAT_KEY}"
 fi
 
-${DAT} clone ${DAT_REGISTRY_HOST}/dat://${DAT_KEY} --empty ${DATA_DIR}
-exec ${SYNC}
+eval "dat clone ${DAT_REGISTRY_HOST}/dat://${DAT_KEY} --empty ${DATA_DIR}; ${SYNC}"
