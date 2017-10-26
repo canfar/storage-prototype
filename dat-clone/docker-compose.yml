@@ -1,8 +1,7 @@
 version: '3'
 services:
   dat:
-    image: at88mph/dat:alpine
-    command: 'clone --sparse dat://${DAT_KEY} ${DATA_DIR}; sync'
+    image: at88mph/dat-clone
     ports:
       - '8080:8080'
       - '3282:3282'
@@ -12,3 +11,7 @@ services:
     network_mode: host
     environment:
       - DATA_DIR=${DATA_DIR}
+      - DAT_KEY=${DAT_KEY}
+      - DAT_REGISTRY_SERVER=${DAT_REGISTRY_SERVER}
+      - DAT_LOGIN_EMAIL=${DAT_LOGIN_EMAIL}
+      - DAT_LOGIN_PASSWORD=${DAT_LOGIN_PASSWORD}

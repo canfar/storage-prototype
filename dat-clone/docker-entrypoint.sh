@@ -7,14 +7,17 @@
 ###############################################################################
 
 if [[ ! -z "${DAT_LOGIN_EMAIL+x}" && ! -z "${DAT_LOGIN_PASSWORD+x}" ]]; then
-
-    if [[ ! -z "${DAT_LOGIN_USERNAME}" ]]; then
-        echo "Registering user ${DAT_LOGIN_USERNAME}.  DO NOT include \${DAT_LOGIN_USERNAME} to prevent registration."
-        dat register --username ${DAT_LOGIN_USERNAME} --email ${DAT_LOGIN_EMAIL} --password ${DAT_LOGIN_PASSWORD} --server ${DAT_REGISTRY_SERVER}
-    fi
-
     echo "Logging in as ${DAT_LOGIN_EMAIL}"
     dat login --email ${DAT_LOGIN_EMAIL} --password ${DAT_LOGIN_PASSWORD} --server ${DAT_REGISTRY_SERVER}
 fi
 
-exec dat publish -d ${DATA_DIR} --server ${DAT_REGISTRY_SERVER}
+if [[ ! -z "${DEBUG+x}" ]]; then
+    DAT="time dat"
+    SYNC="${DAT} sync --watch false"
+else
+    DAT="dat"
+    SYNC="${DAT} sync"
+fi
+
+${DAT} clone ${DAT_REGISTRY_HOST}/dat://${DAT_KEY} --empty ${DATA_DIR}
+exec ${SYNC}

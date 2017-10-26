@@ -2,7 +2,7 @@ version: '3'
 services:
   dat:
     hostname: stortest3.cadc.dao.nrc.ca
-    image: at88mph/dat-publish:alpine
+    image: at88mph/dat-publish
     ports:
       - '3282:3282'
     volumes:

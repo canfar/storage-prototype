@@ -1,4 +1,4 @@
-FROM at88mph/dat:alpine
+FROM at88mph/dat
 
 ENV DATA_DIR="/data"
 
@@ -9,5 +9,3 @@ WORKDIR /data
 
 # Ensure this is an external mount to make available to another process, like the 'publish' command.
 VOLUME /data
-
-CMD ["share"]
